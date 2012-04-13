@@ -6,118 +6,139 @@ var NWM = wm.NWM,
     child_process = require('child_process');
 
 // instantiate nwm and configure it
-var nwm = new NWM();
+    var nwm = new NWM();
 
-// load layouts
-var layouts = wm.layouts;
-nwm.addLayout('flexible', require(__dirname+'/layouts/flexible.js'));
-nwm.addLayout('monocle', layouts.monocle);
-nwm.addLayout('wide', layouts.wide);
+    // load layouts
+    var layouts = wm.layouts;
+    nwm.addLayout('flexible', require(__dirname+'/layouts/flexible.js'));
+    nwm.addLayout('monocle', layouts.monocle);
+    nwm.addLayout('wide', layouts.wide);
 
-// convinience functions for writing the keyboard shortcuts
-function currentMonitor() {
-  return nwm.monitors.get(nwm.monitors.current);
-}
-
-function moveToMonitor(window, currentMonitor, otherMonitorId) {
-  if (window) {
-    window.monitor = otherMonitorId;
-    // set the workspace to the current workspace on that monitor
-    var otherMonitor = nwm.monitors.get(otherMonitorId);
-    window.workspace = otherMonitor.workspaces.current;
-    // rearrange both monitors
-    currentMonitor.workspaces.get(currentMonitor.workspaces.current).rearrange();
-    otherMonitor.workspaces.get(otherMonitor.workspaces.current).rearrange();
-  }
-}
-
-function resizeWorkspace(increment) {
-  var workspace = currentMonitor().currentWorkspace();
-  workspace.setMainWindowScale(workspace.getMainWindowScale() + increment);
-  workspace.rearrange();
-}
-
-function changeWorkspace(increment) {
-  var monitor = currentMonitor();
-  var next = monitor.workspaces.current + increment;
-  if (next < 0) { next = 19; }
-  if (next > 19) { next = 0; }
-  monitor.go( next );
-}
-
-// KEYBOARD SHORTCUTS
-// Change the base modifier to your liking e.g. Xh.Mod4Mask if you just want to use the meta key without Ctrl
-var baseModifier = Xh.Mod4Mask; // Win key
-
-if ( process.env.DISPLAY && process.env.DISPLAY == ':1' ) {
-  baseModifier = Xh.Mod4Mask|Xh.ControlMask; // Win + Ctrl
-}
-
-var keyboard_shortcuts = [
-  {
-    key: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0], // number keys are used to move between screens
-    callback: function(event) {
-      currentMonitor().go(String.fromCharCode(event.keysym));
+    // convinience functions for writing the keyboard shortcuts
+    function currentMonitor() {
+      return nwm.monitors.get(nwm.monitors.current);
     }
-  },
-  {
-    key: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0], // with shift, move windows between workspaces
-    modifier: [ 'shift' ],
-    callback: function(event) {
-      var monitor = currentMonitor();
-      monitor.windowTo(monitor.focused_window, String.fromCharCode(event.keysym));
+
+    function moveToMonitor(window, currentMonitor, otherMonitorId) {
+      if (window) {
+        window.monitor = otherMonitorId;
+        // set the workspace to the current workspace on that monitor
+        var otherMonitor = nwm.monitors.get(otherMonitorId);
+        window.workspace = otherMonitor.workspaces.current;
+        // rearrange both monitors
+        currentMonitor.workspaces.get(currentMonitor.workspaces.current).rearrange();
+        otherMonitor.workspaces.get(otherMonitor.workspaces.current).rearrange();
+      }
     }
-  },
-  {
-    key: ['Left', 'Page_Up'], // meta+left and meta+right key for switching workspaces
-    callback: function() {
-      changeWorkspace(-1);
-    }
-  },
-  {
-    key: ['Right', 'Page_Down'], // meta Page up and meta Page down should go through the workspaces
-    callback: function() {
-      changeWorkspace(1);
-    }
-  },
-  {
-    key: 'Return', // enter key launches sakura
-    modifier: [ 'shift' ],
-    callback: function(event) {
-      child_process.spawn('sakura', [], { env: process.env });
-    }
-  },
-  {
-    key: 'c', // c key closes the current window
-    modifier: [ 'shift' ],
-    callback: function(event) {
-      var monitor = currentMonitor();
-      monitor.focused_window && nwm.wm.killWindow(monitor.focused_window);
-    }
-  },
-  {
-    key: 'space', // space switches between layout modes
-    callback: function(event) {
-      var monitor = currentMonitor();
-      var workspace = monitor.currentWorkspace();
-      workspace.layout = nwm.nextLayout(workspace.layout);
-      // monocle hides windows in the current workspace, so unhide them
-      monitor.go(monitor.workspaces.current);
+
+    function resizeWorkspace(increment) {
+      var workspace = currentMonitor().currentWorkspace();
+      workspace.setMainWindowScale(workspace.getMainWindowScale() + increment);
       workspace.rearrange();
     }
-  },
-  {
-    key: ['h', 'F10'], // shrink master area
-    callback: function(event) {
-      resizeWorkspace(-5);
+
+    function changeWorkspace(increment) {
+      var monitor = currentMonitor();
+      var next = monitor.workspaces.current + increment;
+      if (next < 0) { next = 19; }
+      if (next > 19) { next = 0; }
+      monitor.go( next );
     }
-  },
-  {
-    key: ['l', 'F11'], // grow master area
-    callback: function(event) {
-      resizeWorkspace(+5);
+
+    // KEYBOARD SHORTCUTS
+    // Change the base modifier to your liking e.g. Xh.Mod4Mask if you just want to use the meta key without Ctrl
+    var baseModifier = Xh.Mod4Mask; // Win key
+
+    if ( process.env.DISPLAY && process.env.DISPLAY == ':1' ) {
+      baseModifier = Xh.Mod4Mask|Xh.ControlMask; // Win + Ctrl
     }
-  },
+
+    var keyboard_shortcuts = [
+      {
+        key: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0], // number keys are used to move between screens
+        callback: function(event) {
+          currentMonitor().go(String.fromCharCode(event.keysym));
+        }
+      },
+      {
+        key: [1, 2, 3, 4, 5, 6, 7, 8, 9, 0], // with shift, move windows between workspaces
+        modifier: [ 'shift' ],
+        callback: function(event) {
+          var monitor = currentMonitor();
+          monitor.windowTo(monitor.focused_window, String.fromCharCode(event.keysym));
+        }
+      },
+      {
+        key: ['Left', 'Page_Up'], // meta+left and meta+right key for switching workspaces
+        callback: function() {
+          changeWorkspace(-1);
+        }
+      },
+      {
+        key: ['Right', 'Page_Down'], // meta Page up and meta Page down should go through the workspaces
+        callback: function() {
+          changeWorkspace(1);
+        }
+      },
+      {
+        key: 'Return', // enter key launches lilyterm
+        modifier: [ 'shift' ],
+        callback: function(event) {
+          child_process.spawn('lilyterm', [], { env: process.env });
+        }
+      },
+      {
+        key: 'p', // enter key launches lilyterm
+        modifier: [ 'shift' ],
+        callback: function(event) {
+          child_process.spawn('keepass2', [], { env: process.env });
+        }
+      },
+      {
+        key: 't', // enter key launches lilyterm
+        modifier: [ 'shift' ],
+        callback: function(event) {
+          child_process.spawn('thunderbird', [], { env: process.env });
+        }
+      },
+      {
+        key: 'g', // enter key launches lilyterm
+        modifier: [ 'shift' ],
+        callback: function(event) {
+          child_process.spawn('google-chrome', [], { env: process.env });
+        }
+      },
+      {
+        key: 'c', // c key closes the current window
+        modifier: [ 'shift' ],
+        callback: function(event) {
+          var monitor = currentMonitor();
+          monitor.focused_window && nwm.wm.killWindow(monitor.focused_window);
+        }
+      },
+      {
+        key: 'space', // space switches between layout modes
+        callback: function(event) {
+          var monitor = currentMonitor();
+          var workspace = monitor.currentWorkspace();
+          workspace.layout = nwm.nextLayout(workspace.layout);
+          // monocle hides windows in the current workspace, so unhide them
+          monitor.go(monitor.workspaces.current);
+          workspace.rearrange();
+        }
+      },
+      {
+        key: ['h', 'F10'], // shrink master area
+        callback: function(event) {
+          resizeWorkspace(-5);
+        }
+      },
+      {
+        key: ['l', 'F11'], // grow master area
+        callback: function(event) {
+          resizeWorkspace(+5);
+        }
+      },
   {
     key: 'Tab', // tab makes the current window the main window
     callback: function(event) {
@@ -254,5 +275,13 @@ nwm.start(function() {
     var r = repl.start('>', socket);
     r.context.nwm = nwm;
     r.context.windows = Repl.windows;
-  }).listen('./repl-sock');
+
+  }).listen('./repl-sock', function(){
+    child_process.spawn('stalonetray', [], { env: process.env });
+    child_process.spawn('dropboxd', [], { env: process.env });
+    child_process.spawn('skype', [], { env: process.env });
+    child_process.spawn('google-chrome', [], { env: process.env });
+    child_process.spawn('radiotray', [], { env: process.env });
+    child_process.spawn('thunderbird', [], { env: process.env });
+  });
 });
